@@ -41,7 +41,11 @@
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="lineEditMultipleImage"/>
+       <widget class="QLineEdit" name="lineEditMultipleImage">
+        <property name="readOnly">
+         <bool>false</bool>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QPushButton" name="pushButtonMultipleImage">
@@ -93,7 +97,11 @@
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="lineEditSingleImage"/>
+       <widget class="QLineEdit" name="lineEditSingleImage">
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QPushButton" name="pushButtonSingleImage">

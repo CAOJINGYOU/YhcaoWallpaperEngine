@@ -6,8 +6,20 @@
 #include <QMenu>
 #include <QFileDialog>
 #include <configjson.h>
+#include "fileutils.h"
+#include <QRandomGenerator>
+#include <QStandardPaths>
 
-extern HWND _WORKERWSHELLDLLTEST;
+enum SELECTTYPE
+{
+    SINGLEIMAGE,
+    MULTIPLEIMAGE,
+    BING,
+    UNSPLASH,
+    WEB,
+    VIDEO,
+    TYPEMAX
+};
 
 void MainWindow::InitSysTrayIcon()
 {
@@ -66,35 +78,34 @@ void MainWindow::Init()
     strSelectType = CONFIG_JSON->ReadString("selecttype");
 
     switch (m_mapType[strSelectType]) {
-    case 0:
+    case SINGLEIMAGE:
     {
         ui->radioButtonSingleImage->setChecked(true);
-        //ui->lineEditSingleImage->setText("Yasuo.jpg");
         break;
     }
-    case 1:
+    case MULTIPLEIMAGE:
     {
-
+        ui->radioButtonMultipleImage->setChecked(true);
         break;
     }
-    case 2:
+    case BING:
     {
-
+        ui->radioButtonBing->setChecked(true);
         break;
     }
-    case 3:
+    case UNSPLASH:
     {
-
+        ui->radioButtonUnsplash->setChecked(true);
         break;
     }
-    case 4:
+    case WEB:
     {
-
+        ui->radioButtonWeb->setChecked(true);
         break;
     }
-    case 5:
+    case VIDEO:
     {
-
+        ui->radioButtonVideo->setChecked(true);
         break;
     }
     default:
@@ -113,26 +124,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     InitSysTrayIcon();
 
-    m_view = new QWidget /*QWebEngineView*/();
-    //view->setAutoFillBackground(true);
-//    QImage image;
-//    QPalette palette;
-//    image.load("E:\\图片\\Aatrox_Splash_0.jpg"); // 指定图片所在位置及图片名
-//    palette.setBrush(this->backgroundRole(),QBrush(image));
-//    m_view->setPalette(palette);
-    //view->setStyleSheet("background-image:url(:/bmp/1257253475842.jpg)");
-
-//    QDesktopWidget *desktop = QApplication::desktop();
-//    m_view->move(QPoint(0,0));
-//    int height = desktop->height();
-//    int width = desktop->width();
-//    m_view->resize(QSize(width,height));
-
-//    QPalette bgpal = palette();
-//    bgpal.setColor (QPalette::Background, QColor (0, 0 , 0, 255));
-//    //bgpal.setColor (QPalette::Background, Qt::transparent);
-//    bgpal.setColor (QPalette::Foreground, QColor (255,255,255,255));
-//    m_view->setPalette (bgpal);
+    m_view = new QWidget();
 
     m_nViewId = m_view->winId();
 
@@ -141,10 +133,16 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_view->showFullScreen();
 
+    QDesktopWidget *desktop = QApplication::desktop();
+
+    int height = desktop->height();
+    int width = desktop->width();
+
+    m_view->move(QPoint(0,0));
+    m_view->resize(QSize(width,height));
+
     Init();
 
-
-    //m_view->show();
     this->show();
 }
 
@@ -205,74 +203,113 @@ void MainWindow::on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason reaso
 
 void MainWindow::on_pushButtonSingleImage_clicked()
 {
-    QString path = QFileDialog::getOpenFileName(this);
+    QString path = QFileDialog::getOpenFileName(this,"选择图片",QStandardPaths:: writableLocation(QStandardPaths::PicturesLocation),"Images (*.bmp *.gif *.jpg *.jpeg *.png)");
+    if(path.isEmpty())
+    {
+        return;
+    }
+    CONFIG_JSON->SetSingleImage(path);
     ui->lineEditSingleImage->setText(path);
 }
-
-void MainWindow::on_lineEditSingleImage_textChanged(const QString &arg1)
+//todo::某些大图无法显示
+void MainWindow::SetViewImage(QString path)
 {
-    QString path = ui->lineEditSingleImage->text();
-    path = arg1;
+    if(path.isEmpty())
+    {
+        return;
+    }
+    QFileInfo fileInfo(path);
+    if(!fileInfo.exists())
+    {
+        return;
+    }
+
+    //QString strFile = QCoreApplication::applicationDirPath()+QDir::separator()+"ViewImage."+fileInfo.suffix();
+//    QString strFile = "d:\\ViewImage."+fileInfo.suffix();
+//    QFileInfo fileInfoViewImage(QDir::toNativeSeparators(strFile));
+//    if(fileInfoViewImage.exists())
+//    {
+//        QFile::remove(QDir::toNativeSeparators(strFile));
+//    }
+
+    //QFile::copy(QDir::toNativeSeparators(path), QDir::toNativeSeparators(strFile));
+
     QDesktopWidget *desktop = QApplication::desktop();
 
-    //QRect size = desktop->screenGeometry(0);
     int height = desktop->height();
     int width = desktop->width();
 
     m_view->move(QPoint(0,0));
-    //int height = desktop->height();
-    //int width = desktop->width();
     m_view->resize(QSize(width,height));
 
-    QImage image;
-    image.load(path);
+//    QImage image;
+//    image.load(QDir::toNativeSeparators(strFile));
+
+//    QFile::remove("d:\\ViewImage.png");
+//    bool b =image.save("d:\\ViewImage.png","PNG");
+
     QPalette palette;
-    QPixmap pixmap = QPixmap::fromImage(image);
+
+    //QPixmap pixmap = QPixmap::fromImage(image);
+
+    QPixmap pixmap1(path);
+
     palette.setBrush(this->backgroundRole(),
-                            QBrush(pixmap.scaled(width, height,
+                            QBrush(pixmap1.scaled(width, height,
                             Qt::IgnoreAspectRatio,
                             Qt::SmoothTransformation)));
+    //m_view->hide();
     m_view->setPalette(palette);
     //this->setPalette(palette);
     m_view->show();
+    //SendMessage((HWND)m_nViewId,WM_PAINT,NULL,NULL);
+    //UpdateWindow((HWND)m_nViewId);
+    //RedrawWindow((HWND)m_nViewId);
+}
+
+void MainWindow::on_lineEditSingleImage_textChanged(const QString &arg1)
+{
+    if(m_bgGroup->checkedId()!=SINGLEIMAGE)
+    {
+        return;
+    }
+
+    SetViewImage(arg1);
 }
 
 void MainWindow::on_bgGroup_toggled(int id, bool status)
 {
-
     if(status)
     {
-        QString str = m_vectorType[id];
-        QString ss = str;
-
         switch (id) {
-        case 0:
+        case SINGLEIMAGE:
         {
-            //ui->radioButtonSingleImage->setChecked(true);
-            ui->lineEditSingleImage->setText("Yasuo.jpg");
+            ui->lineEditSingleImage->setText(CONFIG_JSON->GetSingleImage());
             break;
         }
-        case 1:
+        case MULTIPLEIMAGE:
         {
-
+            QString str = CONFIG_JSON->GetMultipleImage();
+            ui->lineEditMultipleImage->setText(str);
+            ui->spinBoxMultipleImage->setValue(CONFIG_JSON->GetMultipleImageTime());
             break;
         }
-        case 2:
-        {
-
-            break;
-        }
-        case 3:
+        case BING:
         {
 
             break;
         }
-        case 4:
+        case UNSPLASH:
         {
 
             break;
         }
-        case 5:
+        case WEB:
+        {
+
+            break;
+        }
+        case VIDEO:
         {
 
             break;
@@ -280,5 +317,40 @@ void MainWindow::on_bgGroup_toggled(int id, bool status)
         default:
             break;
         }
+    }
+}
+
+void MainWindow::on_pushButtonMultipleImage_clicked()
+{
+    QString path = QFileDialog::getExistingDirectory(this,"选择图片路径",QStandardPaths:: writableLocation(QStandardPaths::PicturesLocation));
+    if(path.isEmpty())
+    {
+        return;
+    }
+    CONFIG_JSON->SetMultipleImage(path);
+    ui->lineEditMultipleImage->setText(path);
+}
+
+void MainWindow::on_lineEditMultipleImage_textChanged(const QString &arg1)
+{
+    if(m_bgGroup->checkedId()!=MULTIPLEIMAGE)
+    {
+        return;
+    }
+
+    QStringList filters;
+    filters.append("*.bmp");
+    filters.append("*.gif");
+    filters.append("*.jpg");
+    filters.append("*.jpeg");
+    filters.append("*.png");
+
+    QDir fromDir = arg1;
+    m_filePathList.clear();
+    CFileUtils::ScanData(fromDir,filters,m_filePathList);
+
+    if(m_filePathList.size()>0)
+    {
+        SetViewImage(m_filePathList.at(QRandomGenerator::global()->bounded(m_filePathList.size())));
     }
 }

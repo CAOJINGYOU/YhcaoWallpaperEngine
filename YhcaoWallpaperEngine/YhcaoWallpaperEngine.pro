@@ -17,12 +17,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     configjson.cpp \
+    fileutils.cpp \
     main.cpp \
     mainwindow.cpp \
     utils.cpp
 
 HEADERS += \
     configjson.h \
+    fileutils.h \
     mainwindow.h \
     utils.h
 

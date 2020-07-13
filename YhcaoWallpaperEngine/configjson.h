@@ -26,6 +26,18 @@ public:
 
     QJsonObject CreatTableJson(QString code,QString name,int order);
 
+public:
+    // 单图
+    QString GetSingleImage();
+    void SetSingleImage(QString imagepath);
+
+    // 多图
+    QString GetMultipleImage();
+    void SetMultipleImage(QString imagepath);
+
+    int GetMultipleImageTime();
+    void SetMultipleImage(int time);
+
 private:
     QVariantMap m_cache;
     QString m_fileName;

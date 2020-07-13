@@ -46,7 +46,7 @@ void ConfigJson::IntilJson()
     m_cache.insert("SingleImage",jsonObjSingleImage);
 
     QJsonObject jsonObjMultipleImage;
-    jsonObjMultipleImage.insert("imagepath", "");
+    jsonObjMultipleImage.insert("imagepath", QStandardPaths:: writableLocation(QStandardPaths::PicturesLocation));
     jsonObjMultipleImage.insert("time", 60);
     m_cache.insert("MultipleImage",jsonObjMultipleImage);
 
@@ -156,4 +156,34 @@ int ConfigJson::ReadInt(const QString &key, int defaultValue)
     }
 
     return defaultValue;
+}
+
+QString ConfigJson::GetSingleImage()
+{
+    return m_cache.value("SingleImage").toJsonObject().value("imagepath").toString();
+}
+
+void ConfigJson::SetSingleImage(QString imagepath)
+{
+    m_cache.value("SingleImage").toJsonObject()["imagepath"] = imagepath;
+}
+
+QString ConfigJson::GetMultipleImage()
+{
+    return m_cache.value("MultipleImage").toJsonObject().value("imagepath").toString();
+}
+
+void ConfigJson::SetMultipleImage(QString imagepath)
+{
+    m_cache.value("MultipleImage").toJsonObject()["imagepath"] = imagepath;
+}
+
+int ConfigJson::GetMultipleImageTime()
+{
+    return m_cache.value("MultipleImage").toJsonObject().value("time").toInt();
+}
+
+void ConfigJson::SetMultipleImage(int time)
+{
+    m_cache.value("MultipleImage").toJsonObject()["time"] = time;
 }

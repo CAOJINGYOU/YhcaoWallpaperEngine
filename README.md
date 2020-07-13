@@ -21,7 +21,7 @@
 	{
 		"selecttype": "SingleImage",
 		"SingleImage": {
-			"imagepath": ""
+			"imagepath": "Yasuo.jpg"
 		},
 		"MultipleImage": {
 			"imagepath": "",

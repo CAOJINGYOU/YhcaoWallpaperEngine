@@ -39,6 +39,8 @@ private:
 
     QButtonGroup *m_bgGroup;
 
+    QStringList m_filePathList;
+
 private slots:
     void on_showMainAction();
     void on_exitAppAction();
@@ -51,11 +53,18 @@ private slots:
 
     void on_bgGroup_toggled(int id, bool status);
 
+    void on_pushButtonMultipleImage_clicked();
+
+    void on_lineEditMultipleImage_textChanged(const QString &arg1);
+
 private:
     void closeEvent(QCloseEvent *event);
     // 初始化托盘
     void InitSysTrayIcon();
     void releseMain();
     void Init();
+
+    void SetViewImage(QString path);
+
 };
 #endif // MAINWINDOW_H
