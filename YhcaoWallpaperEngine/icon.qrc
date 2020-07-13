@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icon/icon.png</file>
+        <file>icon/ShowWindow.png</file>
+        <file>icon/ExitApp.png</file>
+    </qresource>
+    <qresource prefix="/menu"/>
+</RCC>
