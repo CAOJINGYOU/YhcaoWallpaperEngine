@@ -9,6 +9,8 @@
 #include "fileutils.h"
 #include <QRandomGenerator>
 #include <QStandardPaths>
+#include <QTimer>
+#include <QDate>
 
 enum SELECTTYPE
 {
@@ -43,8 +45,6 @@ void MainWindow::InitSysTrayIcon()
     m_SysTrayIcon->show();
 }
 
-
-
 void MainWindow::Init()
 {
     int nIndex = 0;
@@ -73,9 +73,7 @@ void MainWindow::Init()
 
     connect(m_bgGroup,SIGNAL(buttonToggled(int,bool)),this,SLOT(on_bgGroup_toggled(int,bool)));
 
-    CONFIG_JSON->ReadJson();
-    QString strSelectType;
-    strSelectType = CONFIG_JSON->ReadString("selecttype");
+    QString strSelectType = CONFIG_JSON->GetSelectType();
 
     switch (m_mapType[strSelectType]) {
     case SINGLEIMAGE:
@@ -118,9 +116,9 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , m_bClose(false)
+    , m_imagefile("Yasuo.jpg")
 {
     ui->setupUi(this);
-
 
     InitSysTrayIcon();
 
@@ -138,8 +136,22 @@ MainWindow::MainWindow(QWidget *parent)
     int height = desktop->height();
     int width = desktop->width();
 
+    qInfo()<<"w:"<<width/10<<"\th:"<<height/10;
+    this->resize(width/10,height/10);
+
     m_view->move(QPoint(0,0));
     m_view->resize(QSize(width,height));
+
+    m_pTimer = new QTimer(this);
+    connect(m_pTimer, SIGNAL(timeout()), this, SLOT(handleTimeout()));
+
+    m_pBingNet = new CBingNet();
+    connect(m_pBingNet,SIGNAL(ViewImage(QString)),this,SLOT(on_BingSetViewImage(QString)));
+
+    m_pUnsplashNet = new CUnsplashNet();
+    connect(m_pUnsplashNet,SIGNAL(ViewImage(QString)),this,SLOT(on_UnsplashSetViewImage(QString)));
+
+    SetViewImage(CONFIG_JSON->GetSingleImage());
 
     Init();
 
@@ -170,6 +182,8 @@ void MainWindow::releseMain()
     delete m_Menu;
     delete m_SysTrayIcon;
     delete m_bgGroup;
+    delete m_pBingNet;
+    delete m_pUnsplashNet;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -185,6 +199,11 @@ void MainWindow::closeEvent(QCloseEvent *event)
     {
         event->ignore();
     }
+}
+
+void MainWindow::resizeEvent ( QResizeEvent * event )
+{
+    SetMainBGImage();
 }
 
 void MainWindow::on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason reason)
@@ -211,7 +230,17 @@ void MainWindow::on_pushButtonSingleImage_clicked()
     CONFIG_JSON->SetSingleImage(path);
     ui->lineEditSingleImage->setText(path);
 }
-//todo::某些大图无法显示
+
+void MainWindow::SetMainBGImage()
+{
+    QPixmap pixmap = QPixmap(m_imagefile).scaled(this->size(),
+                                           Qt::IgnoreAspectRatio,
+                                           Qt::SmoothTransformation);
+    QPalette palette(this->palette());
+    palette.setBrush(QPalette::Background, QBrush(pixmap));
+    this->setPalette(palette);
+}
+
 void MainWindow::SetViewImage(QString path)
 {
     if(path.isEmpty())
@@ -224,15 +253,8 @@ void MainWindow::SetViewImage(QString path)
         return;
     }
 
-    //QString strFile = QCoreApplication::applicationDirPath()+QDir::separator()+"ViewImage."+fileInfo.suffix();
-//    QString strFile = "d:\\ViewImage."+fileInfo.suffix();
-//    QFileInfo fileInfoViewImage(QDir::toNativeSeparators(strFile));
-//    if(fileInfoViewImage.exists())
-//    {
-//        QFile::remove(QDir::toNativeSeparators(strFile));
-//    }
-
-    //QFile::copy(QDir::toNativeSeparators(path), QDir::toNativeSeparators(strFile));
+    m_imagefile = path;
+    qInfo()<<"使用图片:"<<path;
 
     QDesktopWidget *desktop = QApplication::desktop();
 
@@ -252,10 +274,10 @@ void MainWindow::SetViewImage(QString path)
 
     //QPixmap pixmap = QPixmap::fromImage(image);
 
-    QPixmap pixmap1(path);
+    QPixmap pixmap(path);
 
     palette.setBrush(this->backgroundRole(),
-                            QBrush(pixmap1.scaled(width, height,
+                            QBrush(pixmap.scaled(width, height,
                             Qt::IgnoreAspectRatio,
                             Qt::SmoothTransformation)));
     //m_view->hide();
@@ -265,6 +287,8 @@ void MainWindow::SetViewImage(QString path)
     //SendMessage((HWND)m_nViewId,WM_PAINT,NULL,NULL);
     //UpdateWindow((HWND)m_nViewId);
     //RedrawWindow((HWND)m_nViewId);
+
+    SetMainBGImage();
 }
 
 void MainWindow::on_lineEditSingleImage_textChanged(const QString &arg1)
@@ -273,8 +297,24 @@ void MainWindow::on_lineEditSingleImage_textChanged(const QString &arg1)
     {
         return;
     }
-
+    CONFIG_JSON->SetSingleImage(arg1);
     SetViewImage(arg1);
+}
+
+void MainWindow::BingNetExecute()
+{
+    QString fileName = QStandardPaths:: writableLocation(QStandardPaths::PicturesLocation)+QDir::separator()+"Bing"+QDir::separator();
+    QDate date = QDate::currentDate();
+    fileName.append(date.toString("yyyy-MM-dd")).append(".jpg");
+    QFileInfo fileInfo(fileName);
+    if(fileInfo.exists())
+    {
+        SetViewImage(fileName);
+    }
+    else
+    {
+        m_pBingNet->execute();
+    }
 }
 
 void MainWindow::on_bgGroup_toggled(int id, bool status)
@@ -284,23 +324,68 @@ void MainWindow::on_bgGroup_toggled(int id, bool status)
         switch (id) {
         case SINGLEIMAGE:
         {
-            ui->lineEditSingleImage->setText(CONFIG_JSON->GetSingleImage());
+            if(CONFIG_JSON->GetSingleImage().compare(ui->lineEditSingleImage->text())==0)
+            {
+                SetViewImage(CONFIG_JSON->GetSingleImage());
+            }
+            else
+            {
+                ui->lineEditSingleImage->setText(CONFIG_JSON->GetSingleImage());
+            }
+
             break;
         }
         case MULTIPLEIMAGE:
         {
-            QString str = CONFIG_JSON->GetMultipleImage();
-            ui->lineEditMultipleImage->setText(str);
+            if(CONFIG_JSON->GetMultipleImage().compare(ui->lineEditMultipleImage->text())==0)
+            {
+                SetViewImage(CONFIG_JSON->GetMultipleImage());
+            }
+            else
+            {
+                ui->lineEditMultipleImage->setText(CONFIG_JSON->GetMultipleImage());
+            }
+
             ui->spinBoxMultipleImage->setValue(CONFIG_JSON->GetMultipleImageTime());
+
+            if(m_pTimer->isActive())
+            {
+                m_pTimer->stop();
+            }
+            m_pTimer->start(1000*60*CONFIG_JSON->GetMultipleImageTime());
+
             break;
         }
         case BING:
         {
-
+            BingNetExecute();
+            if(m_pTimer->isActive())
+            {
+                m_pTimer->stop();
+            }
+            m_pTimer->start(1000*60*60);
             break;
         }
         case UNSPLASH:
         {
+            if(ui->comboBoxUnsplash->count()==0)
+            {
+                QJsonArray arrUrl = CONFIG_JSON->GetUnsplashUrl();
+                for (int i=0;i<arrUrl.count();++i) {
+                    ui->comboBoxUnsplash->addItem(arrUrl[i].toString());
+                }
+                ui->comboBoxUnsplash->setCurrentIndex(CONFIG_JSON->GetUnsplashSelectIndex());
+            }
+            else
+            {
+                m_pUnsplashNet->execute(ui->comboBoxUnsplash->currentText());
+            }
+
+            if(m_pTimer->isActive())
+            {
+                m_pTimer->stop();
+            }
+            m_pTimer->start(1000*60*CONFIG_JSON->GetUnsplashTime());
 
             break;
         }
@@ -316,6 +401,11 @@ void MainWindow::on_bgGroup_toggled(int id, bool status)
         }
         default:
             break;
+        }
+
+        if(id<TYPEMAX)
+        {
+            CONFIG_JSON->SetSelectType(m_vectorType[id]);
         }
     }
 }
@@ -352,5 +442,77 @@ void MainWindow::on_lineEditMultipleImage_textChanged(const QString &arg1)
     if(m_filePathList.size()>0)
     {
         SetViewImage(m_filePathList.at(QRandomGenerator::global()->bounded(m_filePathList.size())));
+    }
+}
+
+void MainWindow::on_handleTimeout()
+{
+    if(m_bgGroup->checkedId()==MULTIPLEIMAGE)
+    {
+        if(m_filePathList.size()>0)
+        {
+            SetViewImage(m_filePathList.at(QRandomGenerator::global()->bounded(m_filePathList.size())));
+        }
+    }
+    else if(m_bgGroup->checkedId()==BING)
+    {
+        BingNetExecute();
+    }
+    else if(m_bgGroup->checkedId()==UNSPLASH)
+    {
+        m_pUnsplashNet->execute(ui->comboBoxUnsplash->currentText());
+    }
+}
+
+void MainWindow::on_spinBoxMultipleImage_valueChanged(int arg1)
+{
+    CONFIG_JSON->SetMultipleImage(arg1);
+
+    if(m_bgGroup->checkedId()==MULTIPLEIMAGE)
+    {
+        if(m_pTimer->isActive())
+        {
+            m_pTimer->stop();
+        }
+        m_pTimer->start(1000*60*CONFIG_JSON->GetMultipleImageTime());
+    }
+}
+
+void MainWindow::on_spinBoxUnsplash_valueChanged(int arg1)
+{
+    CONFIG_JSON->SetUnsplashTime(arg1);
+
+    if(m_bgGroup->checkedId()==UNSPLASH)
+    {
+        if(m_pTimer->isActive())
+        {
+            m_pTimer->stop();
+        }
+        m_pTimer->start(1000*60*CONFIG_JSON->GetUnsplashTime());
+    }
+}
+
+void MainWindow::on_BingSetViewImage(QString path)
+{
+    SetViewImage(path);
+}
+
+void MainWindow::on_UnsplashSetViewImage(QString path)
+{
+    SetViewImage(path);
+}
+
+void MainWindow::on_comboBoxUnsplash_currentIndexChanged(int index)
+{
+    CONFIG_JSON->SetUnsplashSelectIndex(index);
+    if(m_bgGroup->checkedId()==UNSPLASH)
+    {
+        m_pUnsplashNet->execute(ui->comboBoxUnsplash->currentText());
+
+        if(m_pTimer->isActive())
+        {
+            m_pTimer->stop();
+        }
+        m_pTimer->start(1000*60*CONFIG_JSON->GetUnsplashTime());
     }
 }

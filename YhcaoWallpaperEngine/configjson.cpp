@@ -26,17 +26,6 @@ ConfigJson *ConfigJson::instance()
     return configJson;
 }
 
-QJsonObject ConfigJson::CreatTableJson(QString code,QString name,int order)
-{
-    QJsonObject json;
-    json.insert("code",code);
-    json.insert("name",name);
-    json.insert("order",order);
-    json.insert("size",100);
-
-    return json;
-}
-
 void ConfigJson::IntilJson()
 {
     m_cache.insert("selecttype","SingleImage");
@@ -48,12 +37,13 @@ void ConfigJson::IntilJson()
     QJsonObject jsonObjMultipleImage;
     jsonObjMultipleImage.insert("imagepath", QStandardPaths:: writableLocation(QStandardPaths::PicturesLocation));
     jsonObjMultipleImage.insert("time", 60);
+    jsonObjMultipleImage.insert("selectindex", 0);
     m_cache.insert("MultipleImage",jsonObjMultipleImage);
 
     m_cache.insert("Bing",QJsonObject());
 
     QJsonObject jsonObjUnsplash;
-    jsonObjUnsplash.insert("selectindex", 0);
+    jsonObjUnsplash.insert("time", 60);
     QJsonArray jsonUrl;
     jsonUrl.append("https://source.unsplash.com/random");
     jsonUrl.append("https://source.unsplash.com/user/yhcao");
@@ -158,6 +148,16 @@ int ConfigJson::ReadInt(const QString &key, int defaultValue)
     return defaultValue;
 }
 
+QString ConfigJson::GetSelectType()
+{
+    return m_cache.value("selecttype").toString();
+}
+
+void ConfigJson::SetSelectType(QString selectType)
+{
+    m_cache.insert("selecttype", selectType);
+}
+
 QString ConfigJson::GetSingleImage()
 {
     return m_cache.value("SingleImage").toJsonObject().value("imagepath").toString();
@@ -186,4 +186,29 @@ int ConfigJson::GetMultipleImageTime()
 void ConfigJson::SetMultipleImage(int time)
 {
     m_cache.value("MultipleImage").toJsonObject()["time"] = time;
+}
+
+int ConfigJson::GetUnsplashTime()
+{
+    return m_cache.value("Unsplash").toJsonObject().value("time").toInt();
+}
+
+void ConfigJson::SetUnsplashTime(int time)
+{
+    m_cache.value("Unsplash").toJsonObject()["time"] = time;
+}
+
+QJsonArray ConfigJson::GetUnsplashUrl()
+{
+    return m_cache.value("Unsplash").toJsonObject()["url"].toArray();
+}
+
+int ConfigJson::GetUnsplashSelectIndex()
+{
+    return m_cache.value("Unsplash").toJsonObject().value("selectindex").toInt();
+}
+
+void ConfigJson::SetUnsplashSelectIndex(int index)
+{
+    m_cache.value("Unsplash").toJsonObject()["selectindex"] = index;
 }

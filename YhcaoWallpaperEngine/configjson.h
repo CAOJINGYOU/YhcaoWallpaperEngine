@@ -12,6 +12,7 @@ public:
 public:
     static ConfigJson *instance();
 
+
     void Write(const QString &key, const QVariant& value);
 
     QString ReadString(const QString &key,const QString &defaultValue = "");
@@ -19,14 +20,17 @@ public:
     bool ReadBool(const QString &key, bool defaultValue = false);
     int ReadInt(const QString &key, int defaultValue = 0);
 
+private:
+
     bool ReadJson();
     void WriteJson();
     // 初始化内容
     void IntilJson();
 
-    QJsonObject CreatTableJson(QString code,QString name,int order);
-
 public:
+    QString GetSelectType();
+    void SetSelectType(QString selectType);
+
     // 单图
     QString GetSingleImage();
     void SetSingleImage(QString imagepath);
@@ -37,6 +41,12 @@ public:
 
     int GetMultipleImageTime();
     void SetMultipleImage(int time);
+
+    int GetUnsplashTime();
+    void SetUnsplashTime(int time);
+    QJsonArray GetUnsplashUrl();
+    int GetUnsplashSelectIndex();
+    void SetUnsplashSelectIndex(int index);
 
 private:
     QVariantMap m_cache;

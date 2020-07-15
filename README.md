@@ -29,13 +29,14 @@
 		},
 		"Bing": {},
 		"Unsplash": {
+			"time": 60,
 			"selectindex": 0,
 			"url": [
 				"https://source.unsplash.com/random",
 				"https://source.unsplash.com/user/yhcao",
 				"https://source.unsplash.com/user/yhcao/likes",
 				"https://source.unsplash.com/weekly?water"
-			]
+			],
 		},
 		"Web": {
 			"url": ""

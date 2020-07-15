@@ -43,7 +43,7 @@
       <item>
        <widget class="QLineEdit" name="lineEditMultipleImage">
         <property name="readOnly">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
        </widget>
       </item>

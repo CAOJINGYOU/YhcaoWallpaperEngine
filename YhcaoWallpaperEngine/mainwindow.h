@@ -5,6 +5,8 @@
 #include <QSystemTrayIcon>
 #include <QCloseEvent>
 #include <QButtonGroup>
+#include "cbingnet.h"
+#include "cunsplashnet.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -41,6 +43,14 @@ private:
 
     QStringList m_filePathList;
 
+    QTimer *m_pTimer;
+
+    CBingNet *m_pBingNet;
+
+    CUnsplashNet *m_pUnsplashNet;
+
+    QString m_imagefile;
+
 private slots:
     void on_showMainAction();
     void on_exitAppAction();
@@ -57,8 +67,20 @@ private slots:
 
     void on_lineEditMultipleImage_textChanged(const QString &arg1);
 
+    void on_handleTimeout();
+
+    void on_spinBoxMultipleImage_valueChanged(int arg1);
+
+    void on_spinBoxUnsplash_valueChanged(int arg1);
+
+    void on_BingSetViewImage(QString path);
+    void on_UnsplashSetViewImage(QString path);
+
+    void on_comboBoxUnsplash_currentIndexChanged(int index);
+
 private:
     void closeEvent(QCloseEvent *event);
+    void resizeEvent ( QResizeEvent * event );
     // 初始化托盘
     void InitSysTrayIcon();
     void releseMain();
@@ -66,5 +88,7 @@ private:
 
     void SetViewImage(QString path);
 
+    void BingNetExecute();
+    void SetMainBGImage();
 };
 #endif // MAINWINDOW_H
