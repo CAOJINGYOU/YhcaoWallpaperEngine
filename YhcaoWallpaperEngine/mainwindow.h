@@ -78,6 +78,10 @@ private slots:
 
     void on_comboBoxUnsplash_currentIndexChanged(int index);
 
+    void on_pushButtonMonochrome_clicked();
+
+    void on_spinBoxMonochrome_valueChanged(int arg1);
+
 private:
     void closeEvent(QCloseEvent *event);
     void resizeEvent ( QResizeEvent * event );
@@ -90,5 +94,8 @@ private:
 
     void BingNetExecute();
     void SetMainBGImage();
+    void ScanMultipleImage(const QString &arg1);
+    void SetLabelColor();
+    void SetViewColor();
 };
 #endif // MAINWINDOW_H

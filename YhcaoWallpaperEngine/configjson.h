@@ -3,6 +3,7 @@
 
 #include <QVariantMap>
 #include <QString>
+#include <QColor>
 
 class ConfigJson
 {
@@ -48,6 +49,11 @@ public:
     int GetUnsplashSelectIndex();
     void SetUnsplashSelectIndex(int index);
 
+    QColor GetMonochromeColor();
+    void SetMonochromeColor(QColor qColor);
+
+    int GetMonochromeTime();
+    void SetMonochromeTime(int time);
 private:
     QVariantMap m_cache;
     QString m_fileName;

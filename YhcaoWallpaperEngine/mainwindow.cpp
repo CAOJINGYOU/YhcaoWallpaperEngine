@@ -11,9 +11,11 @@
 #include <QStandardPaths>
 #include <QTimer>
 #include <QDate>
+#include <QColorDialog>
 
 enum SELECTTYPE
 {
+    MONOCHROME,
     SINGLEIMAGE,
     MULTIPLEIMAGE,
     BING,
@@ -48,6 +50,8 @@ void MainWindow::InitSysTrayIcon()
 void MainWindow::Init()
 {
     int nIndex = 0;
+
+    m_mapType.insert("Monochrome",nIndex++);
     m_mapType.insert("SingleImage",nIndex++);
     m_mapType.insert("MultipleImage",nIndex++);
     m_mapType.insert("Bing",nIndex++);
@@ -55,6 +59,7 @@ void MainWindow::Init()
     m_mapType.insert("Web",nIndex++);
     m_mapType.insert("Video",nIndex++);
 
+    m_vectorType.append("Monochrome");
     m_vectorType.append("SingleImage");
     m_vectorType.append("MultipleImage");
     m_vectorType.append("Bing");
@@ -64,6 +69,7 @@ void MainWindow::Init()
 
     m_bgGroup = new QButtonGroup( this );
 
+    m_bgGroup->addButton(ui->radioButtonMonochrome,m_mapType["Monochrome"]);
     m_bgGroup->addButton(ui->radioButtonSingleImage,m_mapType["SingleImage"]);
     m_bgGroup->addButton(ui->radioButtonMultipleImage,m_mapType["MultipleImage"]);
     m_bgGroup->addButton(ui->radioButtonBing,m_mapType["Bing"]);
@@ -76,6 +82,11 @@ void MainWindow::Init()
     QString strSelectType = CONFIG_JSON->GetSelectType();
 
     switch (m_mapType[strSelectType]) {
+    case MONOCHROME:
+    {
+        ui->radioButtonMonochrome->setChecked(true);
+        break;
+    }
     case SINGLEIMAGE:
     {
         ui->radioButtonSingleImage->setChecked(true);
@@ -133,17 +144,17 @@ MainWindow::MainWindow(QWidget *parent)
 
     QDesktopWidget *desktop = QApplication::desktop();
 
-    int height = desktop->height();
-    int width = desktop->width();
+    int height = desktop->height()/5;
+    int width = desktop->width()/5;
 
-    qInfo()<<"w:"<<width/10<<"\th:"<<height/10;
-    this->resize(width/10,height/10);
+    qInfo()<<"w:"<<width<<"\th:"<<height;
+    this->resize(width,height);
 
     m_view->move(QPoint(0,0));
     m_view->resize(QSize(width,height));
 
     m_pTimer = new QTimer(this);
-    connect(m_pTimer, SIGNAL(timeout()), this, SLOT(handleTimeout()));
+    connect(m_pTimer, SIGNAL(timeout()), this, SLOT(on_handleTimeout()));
 
     m_pBingNet = new CBingNet();
     connect(m_pBingNet,SIGNAL(ViewImage(QString)),this,SLOT(on_BingSetViewImage(QString)));
@@ -184,6 +195,7 @@ void MainWindow::releseMain()
     delete m_bgGroup;
     delete m_pBingNet;
     delete m_pUnsplashNet;
+    delete m_pTimer;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -203,7 +215,14 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::resizeEvent ( QResizeEvent * event )
 {
-    SetMainBGImage();
+    if(m_bgGroup->checkedId()==MONOCHROME)
+    {
+        SetLabelColor();
+    }
+    else
+    {
+        SetMainBGImage();
+    }
 }
 
 void MainWindow::on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason reason)
@@ -322,6 +341,23 @@ void MainWindow::on_bgGroup_toggled(int id, bool status)
     if(status)
     {
         switch (id) {
+        case MONOCHROME:
+        {
+            SetLabelColor();
+            SetViewColor();
+
+            if(m_pTimer->isActive())
+            {
+                m_pTimer->stop();
+            }
+
+            if(CONFIG_JSON->GetMonochromeTime()>0)
+            {
+                m_pTimer->start(1000*60*CONFIG_JSON->GetMonochromeTime());
+            }
+
+            break;
+        }
         case SINGLEIMAGE:
         {
             if(CONFIG_JSON->GetSingleImage().compare(ui->lineEditSingleImage->text())==0)
@@ -339,7 +375,15 @@ void MainWindow::on_bgGroup_toggled(int id, bool status)
         {
             if(CONFIG_JSON->GetMultipleImage().compare(ui->lineEditMultipleImage->text())==0)
             {
-                SetViewImage(CONFIG_JSON->GetMultipleImage());
+                if(m_filePathList.size()==0)
+                {
+                    ScanMultipleImage(CONFIG_JSON->GetMultipleImage());
+                }
+
+                if(m_filePathList.size()>0)
+                {
+                    SetViewImage(m_filePathList.at(QRandomGenerator::global()->bounded(m_filePathList.size())));
+                }
             }
             else
             {
@@ -421,13 +465,8 @@ void MainWindow::on_pushButtonMultipleImage_clicked()
     ui->lineEditMultipleImage->setText(path);
 }
 
-void MainWindow::on_lineEditMultipleImage_textChanged(const QString &arg1)
+void MainWindow::ScanMultipleImage(const QString &arg1)
 {
-    if(m_bgGroup->checkedId()!=MULTIPLEIMAGE)
-    {
-        return;
-    }
-
     QStringList filters;
     filters.append("*.bmp");
     filters.append("*.gif");
@@ -438,6 +477,19 @@ void MainWindow::on_lineEditMultipleImage_textChanged(const QString &arg1)
     QDir fromDir = arg1;
     m_filePathList.clear();
     CFileUtils::ScanData(fromDir,filters,m_filePathList);
+}
+
+void MainWindow::on_lineEditMultipleImage_textChanged(const QString &arg1)
+{
+    if(m_bgGroup->checkedId()!=MULTIPLEIMAGE)
+    {
+        return;
+    }
+
+    if(m_filePathList.size()==0)
+    {
+        ScanMultipleImage(arg1);
+    }
 
     if(m_filePathList.size()>0)
     {
@@ -447,7 +499,16 @@ void MainWindow::on_lineEditMultipleImage_textChanged(const QString &arg1)
 
 void MainWindow::on_handleTimeout()
 {
-    if(m_bgGroup->checkedId()==MULTIPLEIMAGE)
+    if(m_bgGroup->checkedId()==MONOCHROME)
+    {
+        QColor qColor(QRandomGenerator::global()->bounded(255),QRandomGenerator::global()->bounded(255),QRandomGenerator::global()->bounded(255),QRandomGenerator::global()->bounded(255));
+
+        CONFIG_JSON->SetMonochromeColor(qColor);
+
+        SetLabelColor();
+        SetViewColor();
+    }
+    else if(m_bgGroup->checkedId()==MULTIPLEIMAGE)
     {
         if(m_filePathList.size()>0)
         {
@@ -514,5 +575,74 @@ void MainWindow::on_comboBoxUnsplash_currentIndexChanged(int index)
             m_pTimer->stop();
         }
         m_pTimer->start(1000*60*CONFIG_JSON->GetUnsplashTime());
+    }
+}
+
+void MainWindow::SetLabelColor()
+{
+    ui->labelMonochrome->clear();
+    QPalette palette;
+    QColor qColor = CONFIG_JSON->GetMonochromeColor();
+    palette.setColor(QPalette::Background, qColor);
+    ui->labelMonochrome->setAutoFillBackground(true);
+    ui->labelMonochrome->setPalette(palette);
+
+    QPalette palette1;
+    palette1.setColor(QPalette::WindowText,QColor(255-qColor.red(),255-qColor.green(),255-qColor.blue()));
+    ui->labelMonochrome->setPalette(palette1);
+
+    ui->labelMonochrome->setText(QString("rgba(%1,%2,%3,%4)").arg(qColor.red()).arg(qColor.green()).arg(qColor.blue()).arg(qColor.alpha()));
+
+    this->setPalette(palette);
+}
+
+void MainWindow::SetViewColor()
+{
+    QPalette palette;
+    palette.setColor(QPalette::Background, CONFIG_JSON->GetMonochromeColor());
+    m_view->setPalette(palette);
+}
+
+void MainWindow::on_pushButtonMonochrome_clicked()
+{
+    QColor color = QColorDialog::getColor(CONFIG_JSON->GetMonochromeColor(), this,"选择单色",QColorDialog::ShowAlphaChannel);
+    if(color.isValid())
+    {
+        CONFIG_JSON->SetMonochromeColor(color);
+
+        SetLabelColor();
+
+        if(m_bgGroup->checkedId()==MONOCHROME)
+        {
+            SetViewColor();
+        }
+    }
+}
+
+void MainWindow::on_spinBoxMonochrome_valueChanged(int arg1)
+{
+    int nTime = CONFIG_JSON->GetMonochromeTime();
+    CONFIG_JSON->SetMonochromeTime(arg1);
+
+    if(m_bgGroup->checkedId()==MONOCHROME)
+    {
+        if(nTime==0&&arg1>0)
+        {
+            QColor qColor(QRandomGenerator::global()->bounded(255),QRandomGenerator::global()->bounded(255),QRandomGenerator::global()->bounded(255),QRandomGenerator::global()->bounded(255));
+
+            CONFIG_JSON->SetMonochromeColor(qColor);
+
+            SetLabelColor();
+            SetViewColor();
+        }
+
+        if(m_pTimer->isActive())
+        {
+            m_pTimer->stop();
+        }
+        if(arg1>0)
+        {
+            m_pTimer->start(1000*60*CONFIG_JSON->GetMonochromeTime());
+        }
     }
 }

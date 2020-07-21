@@ -30,6 +30,14 @@ void ConfigJson::IntilJson()
 {
     m_cache.insert("selecttype","SingleImage");
 
+    QJsonObject jsonObjMonochrome;
+    jsonObjMonochrome.insert("red", 0);
+    jsonObjMonochrome.insert("green", 170);
+    jsonObjMonochrome.insert("blue", 127);
+    jsonObjMonochrome.insert("alpha", 200);
+    jsonObjMonochrome.insert("time", 0);
+    m_cache.insert("Monochrome",jsonObjMonochrome);
+
     QJsonObject jsonObjSingleImage;
     jsonObjSingleImage.insert("imagepath", "Yasuo.jpg");
     m_cache.insert("SingleImage",jsonObjSingleImage);
@@ -37,13 +45,13 @@ void ConfigJson::IntilJson()
     QJsonObject jsonObjMultipleImage;
     jsonObjMultipleImage.insert("imagepath", QStandardPaths:: writableLocation(QStandardPaths::PicturesLocation));
     jsonObjMultipleImage.insert("time", 60);
-    jsonObjMultipleImage.insert("selectindex", 0);
     m_cache.insert("MultipleImage",jsonObjMultipleImage);
 
     m_cache.insert("Bing",QJsonObject());
 
     QJsonObject jsonObjUnsplash;
     jsonObjUnsplash.insert("time", 60);
+    jsonObjUnsplash.insert("selectindex", 0);
     QJsonArray jsonUrl;
     jsonUrl.append("https://source.unsplash.com/random");
     jsonUrl.append("https://source.unsplash.com/user/yhcao");
@@ -165,7 +173,9 @@ QString ConfigJson::GetSingleImage()
 
 void ConfigJson::SetSingleImage(QString imagepath)
 {
-    m_cache.value("SingleImage").toJsonObject()["imagepath"] = imagepath;
+    QVariantMap val = m_cache["SingleImage"].toMap();
+    val["imagepath"] = imagepath;
+    m_cache["SingleImage"] = val;
 }
 
 QString ConfigJson::GetMultipleImage()
@@ -175,7 +185,9 @@ QString ConfigJson::GetMultipleImage()
 
 void ConfigJson::SetMultipleImage(QString imagepath)
 {
-    m_cache.value("MultipleImage").toJsonObject()["imagepath"] = imagepath;
+    QVariantMap val = m_cache["MultipleImage"].toMap();
+    val["imagepath"] = imagepath;
+    m_cache["MultipleImage"] = val;
 }
 
 int ConfigJson::GetMultipleImageTime()
@@ -185,7 +197,9 @@ int ConfigJson::GetMultipleImageTime()
 
 void ConfigJson::SetMultipleImage(int time)
 {
-    m_cache.value("MultipleImage").toJsonObject()["time"] = time;
+    QVariantMap val = m_cache["MultipleImage"].toMap();
+    val["time"] = time;
+    m_cache["MultipleImage"] = val;
 }
 
 int ConfigJson::GetUnsplashTime()
@@ -195,7 +209,9 @@ int ConfigJson::GetUnsplashTime()
 
 void ConfigJson::SetUnsplashTime(int time)
 {
-    m_cache.value("Unsplash").toJsonObject()["time"] = time;
+    QVariantMap val = m_cache["Unsplash"].toMap();
+    val["time"] = time;
+    m_cache["Unsplash"] = val;
 }
 
 QJsonArray ConfigJson::GetUnsplashUrl()
@@ -210,5 +226,37 @@ int ConfigJson::GetUnsplashSelectIndex()
 
 void ConfigJson::SetUnsplashSelectIndex(int index)
 {
-    m_cache.value("Unsplash").toJsonObject()["selectindex"] = index;
+    QVariantMap val = m_cache["Unsplash"].toMap();
+    val["selectindex"] = index;
+    m_cache["Unsplash"] = val;
 }
+
+QColor ConfigJson::GetMonochromeColor()
+{
+    QJsonObject jsonObj = m_cache.value("Monochrome").toJsonObject();
+    QColor qColor(jsonObj.value("red").toInt(),jsonObj.value("green").toInt(),jsonObj.value("blue").toInt(),jsonObj.value("alpha").toInt());
+    return qColor;
+}
+
+void ConfigJson::SetMonochromeColor(QColor qColor)
+{
+    QVariantMap val = m_cache["Monochrome"].toMap();
+    val["red"] = qColor.red();
+    val["green"] = qColor.green();
+    val["blue"] = qColor.blue();
+    val["alpha"] = qColor.alpha();
+    m_cache["Monochrome"] = val;
+}
+
+int ConfigJson::GetMonochromeTime()
+{
+    return m_cache.value("Monochrome").toJsonObject().value("time").toInt();
+}
+
+void ConfigJson::SetMonochromeTime(int time)
+{
+    QVariantMap val = m_cache["Monochrome"].toMap();
+    val["time"] = time;
+    m_cache["Monochrome"] = val;
+}
+
