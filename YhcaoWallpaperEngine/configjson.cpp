@@ -67,6 +67,7 @@ void ConfigJson::IntilJson()
 
     QJsonObject jsonObjVideo;
     jsonObjVideo.insert("videopath", "");
+    jsonObjVideo.insert("volume", 100);
     m_cache.insert("Video",jsonObjVideo);
 
     QJsonObject jsonObOther;
@@ -275,5 +276,29 @@ void ConfigJson::SetOtherLCD(bool bLcd)
     QVariantMap val = m_cache["Other"].toMap();
     val["lcd"] = (bLcd?1:0);
     m_cache["Other"] = val;
+}
+
+QString ConfigJson::GetVideoPath()
+{
+    return m_cache.value("Video").toJsonObject().value("videopath").toString();
+}
+
+void ConfigJson::SetVideoPath(QString videoPath)
+{
+    QVariantMap val = m_cache["Video"].toMap();
+    val["videopath"] = videoPath;
+    m_cache["Video"] = val;
+}
+
+int ConfigJson::GetVideoVolume()
+{
+    return m_cache.value("Video").toJsonObject().value("volume").toInt();
+}
+
+void ConfigJson::SetVideoVolume(int volume)
+{
+    QVariantMap val = m_cache["Video"].toMap();
+    val["volume"] = volume;
+    m_cache["Video"] = val;
 }
 

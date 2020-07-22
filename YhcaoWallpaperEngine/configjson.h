@@ -57,6 +57,11 @@ public:
 
     bool GetOtherLCD();
     void SetOtherLCD(bool bLcd);
+
+    QString GetVideoPath();
+    void SetVideoPath(QString videoPath);
+    int GetVideoVolume();
+    void SetVideoVolume(int volume);
 private:
     QVariantMap m_cache;
     QString m_fileName;

@@ -11,6 +11,9 @@
 #include <QLabel>
 #include <QLCDNumber>
 #include <QMovie>
+#include <QMediaPlayer>
+#include <QVideoWidget>
+#include <QMediaPlaylist>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -66,6 +69,12 @@ private:
     QMovie *m_movieGIF;
     QLabel *m_labelGIF;
 
+    //Video
+    QVBoxLayout *m_layoutVVideo;
+    QMediaPlayer *m_mediaPlayerVideo;
+    QVideoWidget *m_videoWidgetVideo;
+    QMediaPlaylist *m_mediaPlaylistVideo;
+
 
 private slots:
     void on_showMainAction();
@@ -102,6 +111,12 @@ private slots:
 
     void on_checkBoxLCD_stateChanged(int arg1);
 
+    void on_pushButtonVideo_clicked();
+
+    void on_lineEditVideo_textChanged(const QString &arg1);
+
+    void on_spinBoxVideo_valueChanged(int arg1);
+
 private:
     void closeEvent(QCloseEvent *event);
     void resizeEvent ( QResizeEvent * event );
@@ -119,5 +134,6 @@ private:
     void SetViewColor();
     void SetLCD(bool checked);
     void SetGif(bool bchecked,int height, int width);
+    void SetVideo(bool bDisplay, QString arg1);
 };
 #endif // MAINWINDOW_H

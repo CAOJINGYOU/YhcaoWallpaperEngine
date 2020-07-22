@@ -129,11 +129,15 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
     , m_bClose(false)
     , m_imagefile("Yasuo.jpg")
-    ,m_layoutVLCD(nullptr)
-    ,m_lcdNumber(nullptr)
-    ,m_layoutVGIF(nullptr)
-    ,m_movieGIF(nullptr)
-    ,m_labelGIF(nullptr)
+    , m_layoutVLCD(nullptr)
+    , m_lcdNumber(nullptr)
+    , m_layoutVGIF(nullptr)
+    , m_movieGIF(nullptr)
+    , m_labelGIF(nullptr)
+    , m_layoutVVideo(nullptr)
+    , m_mediaPlayerVideo(nullptr)
+    , m_videoWidgetVideo(nullptr)
+    , m_mediaPlaylistVideo(nullptr)
 {
     ui->setupUi(this);
 
@@ -426,6 +430,7 @@ void MainWindow::on_bgGroup_toggled(int id, bool status)
     {
         SetLCD(false);
         SetGif(false,0, 0);
+        SetVideo(false, "");
 
         switch (id) {
         case MONOCHROME:
@@ -528,7 +533,16 @@ void MainWindow::on_bgGroup_toggled(int id, bool status)
         }
         case VIDEO:
         {
+            if(CONFIG_JSON->GetVideoPath().compare(ui->lineEditVideo->text())==0)
+            {
+                SetVideo(true, CONFIG_JSON->GetVideoPath());
+            }
+            else
+            {
+                ui->lineEditVideo->setText(CONFIG_JSON->GetVideoPath());
+            }
 
+            ui->spinBoxVideo->setValue(CONFIG_JSON->GetVideoVolume());
             break;
         }
         default:
@@ -846,5 +860,113 @@ void MainWindow::on_checkBoxLCD_stateChanged(int arg1)
     if(m_bgGroup->checkedId()<WEB)
     {
         SetLCD(arg1 == Qt::Checked);
+    }
+}
+
+void MainWindow::on_pushButtonVideo_clicked()
+{
+    QString path = QFileDialog::getOpenFileName(this,"选择视频",QStandardPaths:: writableLocation(QStandardPaths::MoviesLocation),"Video (*.mp4)");
+    if(path.isEmpty())
+    {
+        return;
+    }
+    CONFIG_JSON->SetVideoPath(path);
+    ui->lineEditVideo->setText(path);
+}
+
+void MainWindow::SetVideo(bool bDisplay, QString arg1)
+{
+    if(bDisplay)
+    {
+        if(m_layoutVVideo==nullptr)
+        {
+            m_layoutVVideo = new QVBoxLayout;
+            m_layoutVVideo->setMargin(0);
+        }
+        if(m_mediaPlayerVideo==nullptr)
+        {
+            m_mediaPlayerVideo = new QMediaPlayer;
+        }
+        if(m_videoWidgetVideo==nullptr)
+        {
+            m_videoWidgetVideo = new QVideoWidget;
+        }
+        if(m_mediaPlaylistVideo==nullptr)
+        {
+            m_mediaPlaylistVideo = new QMediaPlaylist;
+        }
+
+        m_videoWidgetVideo->setAspectRatioMode(Qt::IgnoreAspectRatio);
+        m_videoWidgetVideo->setFullScreen(true);
+
+        m_layoutVVideo->addWidget(m_videoWidgetVideo);
+
+        m_mediaPlaylistVideo->clear();
+        m_mediaPlaylistVideo->addMedia(QUrl::fromLocalFile(arg1));
+        m_mediaPlaylistVideo->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
+        m_mediaPlayerVideo->setPlaylist(m_mediaPlaylistVideo);
+
+        m_mediaPlayerVideo->setVideoOutput(m_videoWidgetVideo);
+
+        m_view->setLayout(m_layoutVVideo);
+
+        m_mediaPlayerVideo->setVolume(CONFIG_JSON->GetVideoVolume());
+
+        m_mediaPlayerVideo->play();
+    }
+    else
+    {
+        if(m_layoutVVideo!=nullptr)
+        {
+            delete m_layoutVVideo;
+            m_layoutVVideo = nullptr;
+
+            m_view->setLayout(nullptr);
+        }
+        if(m_mediaPlayerVideo!=nullptr)
+        {
+            delete m_mediaPlayerVideo;
+            m_mediaPlayerVideo = nullptr;
+        }
+        if(m_videoWidgetVideo!=nullptr)
+        {
+            delete m_videoWidgetVideo;
+            m_videoWidgetVideo = nullptr;
+        }
+        if(m_mediaPlaylistVideo!=nullptr)
+        {
+            delete m_mediaPlaylistVideo;
+            m_mediaPlaylistVideo = nullptr;
+        }
+    }
+}
+
+void MainWindow::on_lineEditVideo_textChanged(const QString &arg1)
+{
+    QFileInfo fileInfo(arg1);
+    if(!fileInfo.exists())
+    {
+        return;
+    }
+
+    CONFIG_JSON->SetVideoPath(arg1);
+
+    if(m_bgGroup->checkedId()==VIDEO)
+    {
+        SetVideo(false, arg1);
+        SetVideo(true, arg1);
+    }
+}
+
+void MainWindow::on_spinBoxVideo_valueChanged(int arg1)
+{
+    CONFIG_JSON->SetVideoVolume(arg1);
+
+    if(m_bgGroup->checkedId()==VIDEO)
+    {
+        if(m_mediaPlayerVideo!=nullptr)
+        {
+            m_mediaPlayerVideo->setVolume(CONFIG_JSON->GetVideoVolume());
+        }
     }
 }
