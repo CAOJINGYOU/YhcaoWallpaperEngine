@@ -54,6 +54,9 @@ public:
 
     int GetMonochromeTime();
     void SetMonochromeTime(int time);
+
+    bool GetOtherLCD();
+    void SetOtherLCD(bool bLcd);
 private:
     QVariantMap m_cache;
     QString m_fileName;

@@ -7,6 +7,10 @@
 #include <QButtonGroup>
 #include "cbingnet.h"
 #include "cunsplashnet.h"
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QLCDNumber>
+#include <QMovie>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -51,6 +55,18 @@ private:
 
     QString m_imagefile;
 
+    //LCD
+    QVBoxLayout *m_layoutVLCD;
+    QLCDNumber *m_lcdNumber;
+
+    QTimer *m_pTimerLCD;
+
+    //GIF
+    QVBoxLayout *m_layoutVGIF;
+    QMovie *m_movieGIF;
+    QLabel *m_labelGIF;
+
+
 private slots:
     void on_showMainAction();
     void on_exitAppAction();
@@ -82,6 +98,10 @@ private slots:
 
     void on_spinBoxMonochrome_valueChanged(int arg1);
 
+    void on_handleTimeLCDout();
+
+    void on_checkBoxLCD_stateChanged(int arg1);
+
 private:
     void closeEvent(QCloseEvent *event);
     void resizeEvent ( QResizeEvent * event );
@@ -97,5 +117,7 @@ private:
     void ScanMultipleImage(const QString &arg1);
     void SetLabelColor();
     void SetViewColor();
+    void SetLCD(bool checked);
+    void SetGif(bool bchecked,int height, int width);
 };
 #endif // MAINWINDOW_H

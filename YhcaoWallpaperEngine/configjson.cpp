@@ -36,6 +36,7 @@ void ConfigJson::IntilJson()
     jsonObjMonochrome.insert("blue", 127);
     jsonObjMonochrome.insert("alpha", 200);
     jsonObjMonochrome.insert("time", 0);
+    jsonObjMonochrome.insert("lcd", 0);
     m_cache.insert("Monochrome",jsonObjMonochrome);
 
     QJsonObject jsonObjSingleImage;
@@ -67,6 +68,10 @@ void ConfigJson::IntilJson()
     QJsonObject jsonObjVideo;
     jsonObjVideo.insert("videopath", "");
     m_cache.insert("Video",jsonObjVideo);
+
+    QJsonObject jsonObOther;
+    jsonObOther.insert("lcd", 0);
+    m_cache.insert("Other",jsonObOther);
 }
 
 bool ConfigJson::ReadJson()
@@ -258,5 +263,17 @@ void ConfigJson::SetMonochromeTime(int time)
     QVariantMap val = m_cache["Monochrome"].toMap();
     val["time"] = time;
     m_cache["Monochrome"] = val;
+}
+
+bool ConfigJson::GetOtherLCD()
+{
+    return m_cache.value("Other").toJsonObject().value("lcd").toInt() == 1;
+}
+
+void ConfigJson::SetOtherLCD(bool bLcd)
+{
+    QVariantMap val = m_cache["Other"].toMap();
+    val["lcd"] = (bLcd?1:0);
+    m_cache["Other"] = val;
 }
 

@@ -12,6 +12,7 @@
 #include <QTimer>
 #include <QDate>
 #include <QColorDialog>
+#include <QPainter>
 
 enum SELECTTYPE
 {
@@ -128,6 +129,11 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
     , m_bClose(false)
     , m_imagefile("Yasuo.jpg")
+    ,m_layoutVLCD(nullptr)
+    ,m_lcdNumber(nullptr)
+    ,m_layoutVGIF(nullptr)
+    ,m_movieGIF(nullptr)
+    ,m_labelGIF(nullptr)
 {
     ui->setupUi(this);
 
@@ -164,6 +170,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     SetViewImage(CONFIG_JSON->GetSingleImage());
 
+    m_pTimerLCD  = new QTimer(this);
+    m_pTimerLCD->setInterval(1000);
+
+    connect(m_pTimerLCD, SIGNAL(timeout()), this, SLOT(on_handleTimeLCDout()));
+
     Init();
 
     this->show();
@@ -196,6 +207,9 @@ void MainWindow::releseMain()
     delete m_pBingNet;
     delete m_pUnsplashNet;
     delete m_pTimer;
+
+    //delete m_label;
+    //delete m_layoutV;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -241,7 +255,7 @@ void MainWindow::on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason reaso
 
 void MainWindow::on_pushButtonSingleImage_clicked()
 {
-    QString path = QFileDialog::getOpenFileName(this,"选择图片",QStandardPaths:: writableLocation(QStandardPaths::PicturesLocation),"Images (*.bmp *.gif *.jpg *.jpeg *.png)");
+    QString path = QFileDialog::getOpenFileName(this,"选择图片",QStandardPaths:: writableLocation(QStandardPaths::PicturesLocation),"Images (*.bmp *.gif *.mng *.jpg *.jpeg *.png)");
     if(path.isEmpty())
     {
         return;
@@ -258,6 +272,66 @@ void MainWindow::SetMainBGImage()
     QPalette palette(this->palette());
     palette.setBrush(QPalette::Background, QBrush(pixmap));
     this->setPalette(palette);
+}
+
+void MainWindow::SetGif(bool bchecked,int height, int width)
+{
+    if(bchecked)
+    {
+        if(m_layoutVGIF==nullptr)
+        {
+            m_layoutVGIF = new QVBoxLayout;
+        }
+
+        if(m_labelGIF==nullptr)
+        {
+            m_labelGIF = new QLabel;
+        }
+
+        if(m_movieGIF==nullptr)
+        {
+            m_movieGIF = new QMovie(m_imagefile);
+        }
+
+        m_movieGIF->setScaledSize(QSize(width,height));
+        m_labelGIF->setMovie(m_movieGIF);
+
+        m_layoutVGIF->addWidget(m_labelGIF);
+        m_layoutVGIF->setMargin(0);
+        m_view->setLayout(m_layoutVGIF);
+        m_movieGIF->start();
+
+    }
+    else
+    {
+        if(m_layoutVGIF!=nullptr)
+        {
+            delete m_layoutVGIF;
+            m_layoutVGIF = nullptr;
+
+            if(m_layoutVLCD!=nullptr)
+            {
+                m_view->setLayout(m_layoutVLCD);
+            }
+            else
+            {
+                m_view->setLayout(nullptr);
+            }
+        }
+
+        if(m_labelGIF!=nullptr)
+        {
+            delete m_labelGIF;
+            m_labelGIF = nullptr;
+        }
+
+        if(m_movieGIF!=nullptr)
+        {
+            delete m_movieGIF;
+            m_movieGIF = nullptr;
+        }
+
+    }
 }
 
 void MainWindow::SetViewImage(QString path)
@@ -283,29 +357,39 @@ void MainWindow::SetViewImage(QString path)
     m_view->move(QPoint(0,0));
     m_view->resize(QSize(width,height));
 
-//    QImage image;
-//    image.load(QDir::toNativeSeparators(strFile));
+    if(m_imagefile.endsWith(".gif")||m_imagefile.endsWith(".mng"))
+    {
+        SetGif(false,height, width);
+        SetGif(true,height, width);
+    }
+    else
+    {
+        //    QImage image;
+        //    image.load(QDir::toNativeSeparators(strFile));
 
-//    QFile::remove("d:\\ViewImage.png");
-//    bool b =image.save("d:\\ViewImage.png","PNG");
+        //    QFile::remove("d:\\ViewImage.png");
+        //    bool b =image.save("d:\\ViewImage.png","PNG");
 
-    QPalette palette;
+        QPalette palette;
 
-    //QPixmap pixmap = QPixmap::fromImage(image);
+        //QPixmap pixmap = QPixmap::fromImage(image);
 
-    QPixmap pixmap(path);
+        QPixmap pixmap(m_imagefile);
 
-    palette.setBrush(this->backgroundRole(),
-                            QBrush(pixmap.scaled(width, height,
-                            Qt::IgnoreAspectRatio,
-                            Qt::SmoothTransformation)));
-    //m_view->hide();
-    m_view->setPalette(palette);
-    //this->setPalette(palette);
+        palette.setBrush(this->backgroundRole(),
+                                QBrush(pixmap.scaled(width, height,
+                                Qt::IgnoreAspectRatio,
+                                Qt::SmoothTransformation)));
+        //m_view->hide();
+        m_view->setPalette(palette);
+        //this->setPalette(palette);
+
+        //SendMessage((HWND)m_nViewId,WM_PAINT,NULL,NULL);
+        //UpdateWindow((HWND)m_nViewId);
+        //RedrawWindow((HWND)m_nViewId);
+    }
+
     m_view->show();
-    //SendMessage((HWND)m_nViewId,WM_PAINT,NULL,NULL);
-    //UpdateWindow((HWND)m_nViewId);
-    //RedrawWindow((HWND)m_nViewId);
 
     SetMainBGImage();
 }
@@ -340,6 +424,9 @@ void MainWindow::on_bgGroup_toggled(int id, bool status)
 {
     if(status)
     {
+        SetLCD(false);
+        SetGif(false,0, 0);
+
         switch (id) {
         case MONOCHROME:
         {
@@ -351,11 +438,12 @@ void MainWindow::on_bgGroup_toggled(int id, bool status)
                 m_pTimer->stop();
             }
 
+            ui->spinBoxMonochrome->setValue(CONFIG_JSON->GetMonochromeTime());
+
             if(CONFIG_JSON->GetMonochromeTime()>0)
             {
                 m_pTimer->start(1000*60*CONFIG_JSON->GetMonochromeTime());
             }
-
             break;
         }
         case SINGLEIMAGE:
@@ -451,6 +539,18 @@ void MainWindow::on_bgGroup_toggled(int id, bool status)
         {
             CONFIG_JSON->SetSelectType(m_vectorType[id]);
         }
+
+        if(id<WEB)
+        {
+            if(ui->checkBoxLCD->isChecked()==CONFIG_JSON->GetOtherLCD())
+            {
+                SetLCD(CONFIG_JSON->GetOtherLCD());
+            }
+            else
+            {
+                ui->checkBoxLCD->setChecked(CONFIG_JSON->GetOtherLCD());
+            }
+        }
     }
 }
 
@@ -470,6 +570,7 @@ void MainWindow::ScanMultipleImage(const QString &arg1)
     QStringList filters;
     filters.append("*.bmp");
     filters.append("*.gif");
+    filters.append("*.mng");
     filters.append("*.jpg");
     filters.append("*.jpeg");
     filters.append("*.png");
@@ -600,7 +701,9 @@ void MainWindow::SetViewColor()
 {
     QPalette palette;
     palette.setColor(QPalette::Background, CONFIG_JSON->GetMonochromeColor());
+
     m_view->setPalette(palette);
+
 }
 
 void MainWindow::on_pushButtonMonochrome_clicked()
@@ -624,7 +727,7 @@ void MainWindow::on_spinBoxMonochrome_valueChanged(int arg1)
     int nTime = CONFIG_JSON->GetMonochromeTime();
     CONFIG_JSON->SetMonochromeTime(arg1);
 
-    if(m_bgGroup->checkedId()==MONOCHROME)
+    if(m_bgGroup->checkedId()<WEB)
     {
         if(nTime==0&&arg1>0)
         {
@@ -644,5 +747,104 @@ void MainWindow::on_spinBoxMonochrome_valueChanged(int arg1)
         {
             m_pTimer->start(1000*60*CONFIG_JSON->GetMonochromeTime());
         }
+    }
+}
+
+void MainWindow::SetLCD(bool checked)
+{
+    if(checked)
+    {
+        if(m_layoutVLCD==nullptr)
+        {
+            m_layoutVLCD = new QVBoxLayout;
+        }
+
+        if(m_lcdNumber==nullptr)
+        {
+            m_lcdNumber = new QLCDNumber;
+        }
+
+        // 设置能显示的位数
+        m_lcdNumber->setDigitCount(19);
+        // 设置显示的模式为十进制
+        m_lcdNumber->setMode(QLCDNumber::Dec);
+        // 设置显示外观
+        m_lcdNumber->setSegmentStyle(QLCDNumber::Outline);//Outline, Filled, Flat
+
+        m_lcdNumber->setFrameStyle(QFrame::NoFrame | QFrame::Raised);
+
+        m_layoutVLCD->addWidget(m_lcdNumber);
+        m_layoutVLCD->setMargin(0);
+
+        if(m_labelGIF!=nullptr)
+        {
+            m_labelGIF->setLayout(m_layoutVLCD);
+        }
+        else
+        {
+            m_view->setLayout(m_layoutVLCD);
+        }
+
+        m_pTimerLCD->start();
+    }
+    else
+    {
+        if(m_pTimerLCD->isActive())
+        {
+            m_pTimerLCD->stop();
+        }
+
+        if(m_lcdNumber!=nullptr)
+        {
+            m_layoutVLCD->removeWidget(m_lcdNumber);
+
+            delete m_lcdNumber;
+            m_lcdNumber = nullptr;
+        }
+
+        if(m_layoutVLCD!=nullptr)
+        {
+            if(m_labelGIF!=nullptr)
+            {
+                m_labelGIF->setLayout(nullptr);
+            }
+            else
+            {
+                m_view->setLayout(nullptr);
+            }
+
+            delete m_layoutVLCD;
+            m_layoutVLCD = nullptr;
+        }
+    }
+}
+
+void MainWindow::on_handleTimeLCDout()
+{
+    if(m_bgGroup->checkedId()<WEB)
+    {
+        if(m_lcdNumber!=nullptr)
+        {
+            m_lcdNumber->display(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"));
+        }
+    }
+    else
+    {
+        if(m_pTimerLCD->isActive())
+        {
+            m_pTimerLCD->stop();
+        }
+
+        SetLCD(false);
+    }
+}
+
+void MainWindow::on_checkBoxLCD_stateChanged(int arg1)
+{
+    CONFIG_JSON->SetOtherLCD(arg1 == Qt::Checked);
+
+    if(m_bgGroup->checkedId()<WEB)
+    {
+        SetLCD(arg1 == Qt::Checked);
     }
 }
