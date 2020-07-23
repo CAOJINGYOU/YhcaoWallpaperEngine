@@ -138,6 +138,8 @@ MainWindow::MainWindow(QWidget *parent)
     , m_mediaPlayerVideo(nullptr)
     , m_videoWidgetVideo(nullptr)
     , m_mediaPlaylistVideo(nullptr)
+    , m_layoutVWeb(nullptr)
+    , m_webWidget(nullptr)
 {
     ui->setupUi(this);
 
@@ -282,29 +284,28 @@ void MainWindow::SetGif(bool bchecked,int height, int width)
 {
     if(bchecked)
     {
-        if(m_layoutVGIF==nullptr)
-        {
-            m_layoutVGIF = new QVBoxLayout;
-        }
-
         if(m_labelGIF==nullptr)
         {
             m_labelGIF = new QLabel;
         }
 
+        if(m_layoutVGIF==nullptr)
+        {
+            m_layoutVGIF = new QVBoxLayout;
+            m_layoutVGIF->addWidget(m_labelGIF);
+            m_layoutVGIF->setMargin(0);
+            m_view->setLayout(m_layoutVGIF);
+        }
+
         if(m_movieGIF==nullptr)
         {
             m_movieGIF = new QMovie(m_imagefile);
+            m_movieGIF->setScaledSize(QSize(width,height));
+            m_labelGIF->setMovie(m_movieGIF);
         }
+        m_movieGIF->setFileName(m_imagefile);
 
-        m_movieGIF->setScaledSize(QSize(width,height));
-        m_labelGIF->setMovie(m_movieGIF);
-
-        m_layoutVGIF->addWidget(m_labelGIF);
-        m_layoutVGIF->setMargin(0);
-        m_view->setLayout(m_layoutVGIF);
         m_movieGIF->start();
-
     }
     else
     {
@@ -428,20 +429,21 @@ void MainWindow::on_bgGroup_toggled(int id, bool status)
 {
     if(status)
     {
+        if(m_pTimer->isActive())
+        {
+            m_pTimer->stop();
+        }
+
         SetLCD(false);
         SetGif(false,0, 0);
         SetVideo(false, "");
+        SetWeb(false,"");
 
         switch (id) {
         case MONOCHROME:
         {
             SetLabelColor();
             SetViewColor();
-
-            if(m_pTimer->isActive())
-            {
-                m_pTimer->stop();
-            }
 
             ui->spinBoxMonochrome->setValue(CONFIG_JSON->GetMonochromeTime());
 
@@ -485,10 +487,6 @@ void MainWindow::on_bgGroup_toggled(int id, bool status)
 
             ui->spinBoxMultipleImage->setValue(CONFIG_JSON->GetMultipleImageTime());
 
-            if(m_pTimer->isActive())
-            {
-                m_pTimer->stop();
-            }
             m_pTimer->start(1000*60*CONFIG_JSON->GetMultipleImageTime());
 
             break;
@@ -496,10 +494,7 @@ void MainWindow::on_bgGroup_toggled(int id, bool status)
         case BING:
         {
             BingNetExecute();
-            if(m_pTimer->isActive())
-            {
-                m_pTimer->stop();
-            }
+
             m_pTimer->start(1000*60*60);
             break;
         }
@@ -518,17 +513,22 @@ void MainWindow::on_bgGroup_toggled(int id, bool status)
                 m_pUnsplashNet->execute(ui->comboBoxUnsplash->currentText());
             }
 
-            if(m_pTimer->isActive())
-            {
-                m_pTimer->stop();
-            }
             m_pTimer->start(1000*60*CONFIG_JSON->GetUnsplashTime());
 
             break;
         }
         case WEB:
         {
+            if(CONFIG_JSON->GetWebUrl().compare(ui->lineEditWeb->text())==0)
+            {
+                SetWeb(true, CONFIG_JSON->GetWebUrl());
+            }
+            else
+            {
+                ui->lineEditWeb->setText(CONFIG_JSON->GetWebUrl());
+            }
 
+            m_pTimer->start(1000*60*CONFIG_JSON->GetWebTime());
             break;
         }
         case VIDEO:
@@ -637,6 +637,10 @@ void MainWindow::on_handleTimeout()
     else if(m_bgGroup->checkedId()==UNSPLASH)
     {
         m_pUnsplashNet->execute(ui->comboBoxUnsplash->currentText());
+    }
+    else if(m_bgGroup->checkedId()==WEB)
+    {
+        SetWeb(true,CONFIG_JSON->GetWebUrl());
     }
 }
 
@@ -768,27 +772,25 @@ void MainWindow::SetLCD(bool checked)
 {
     if(checked)
     {
-        if(m_layoutVLCD==nullptr)
-        {
-            m_layoutVLCD = new QVBoxLayout;
-        }
-
         if(m_lcdNumber==nullptr)
         {
             m_lcdNumber = new QLCDNumber;
+            // 设置能显示的位数
+            m_lcdNumber->setDigitCount(19);
+            // 设置显示的模式为十进制
+            m_lcdNumber->setMode(QLCDNumber::Dec);
+            // 设置显示外观
+            m_lcdNumber->setSegmentStyle(QLCDNumber::Outline);//Outline, Filled, Flat
+
+            m_lcdNumber->setFrameStyle(QFrame::NoFrame | QFrame::Raised);
         }
 
-        // 设置能显示的位数
-        m_lcdNumber->setDigitCount(19);
-        // 设置显示的模式为十进制
-        m_lcdNumber->setMode(QLCDNumber::Dec);
-        // 设置显示外观
-        m_lcdNumber->setSegmentStyle(QLCDNumber::Outline);//Outline, Filled, Flat
-
-        m_lcdNumber->setFrameStyle(QFrame::NoFrame | QFrame::Raised);
-
-        m_layoutVLCD->addWidget(m_lcdNumber);
-        m_layoutVLCD->setMargin(0);
+        if(m_layoutVLCD==nullptr)
+        {
+            m_layoutVLCD = new QVBoxLayout;
+            m_layoutVLCD->addWidget(m_lcdNumber);
+            m_layoutVLCD->setMargin(0);
+        }
 
         if(m_labelGIF!=nullptr)
         {
@@ -878,11 +880,6 @@ void MainWindow::SetVideo(bool bDisplay, QString arg1)
 {
     if(bDisplay)
     {
-        if(m_layoutVVideo==nullptr)
-        {
-            m_layoutVVideo = new QVBoxLayout;
-            m_layoutVVideo->setMargin(0);
-        }
         if(m_mediaPlayerVideo==nullptr)
         {
             m_mediaPlayerVideo = new QMediaPlayer;
@@ -890,16 +887,21 @@ void MainWindow::SetVideo(bool bDisplay, QString arg1)
         if(m_videoWidgetVideo==nullptr)
         {
             m_videoWidgetVideo = new QVideoWidget;
+
+            m_videoWidgetVideo->setAspectRatioMode(Qt::IgnoreAspectRatio);
+            m_videoWidgetVideo->setFullScreen(true);
         }
         if(m_mediaPlaylistVideo==nullptr)
         {
             m_mediaPlaylistVideo = new QMediaPlaylist;
         }
 
-        m_videoWidgetVideo->setAspectRatioMode(Qt::IgnoreAspectRatio);
-        m_videoWidgetVideo->setFullScreen(true);
-
-        m_layoutVVideo->addWidget(m_videoWidgetVideo);
+        if(m_layoutVVideo==nullptr)
+        {
+            m_layoutVVideo = new QVBoxLayout;
+            m_layoutVVideo->setMargin(0);
+            m_layoutVVideo->addWidget(m_videoWidgetVideo);
+        }
 
         m_mediaPlaylistVideo->clear();
         m_mediaPlaylistVideo->addMedia(QUrl::fromLocalFile(arg1));
@@ -968,5 +970,81 @@ void MainWindow::on_spinBoxVideo_valueChanged(int arg1)
         {
             m_mediaPlayerVideo->setVolume(CONFIG_JSON->GetVideoVolume());
         }
+    }
+}
+
+void MainWindow::on_pushButtonWeb_clicked()
+{
+    QString path = QFileDialog::getOpenFileName(this,"选择网页",QStandardPaths:: writableLocation(QStandardPaths::DesktopLocation),"html (*.html *.htm)");
+    if(path.isEmpty())
+    {
+        return;
+    }
+    CONFIG_JSON->SetWebUrl(path);
+    ui->lineEditWeb->setText(path);
+}
+
+void MainWindow::SetWeb(bool bDisplay, QString arg1)
+{
+    if(bDisplay)
+    {
+        if(m_webWidget==nullptr)
+        {
+            m_webWidget = new QAxWidget;
+
+            m_webWidget->setControl(QString::fromUtf8("{8856F961-340A-11D0-A96B-00C04FD705A2}"));
+
+            m_webWidget->setProperty("DisplayAlerts",false); //不显示任何警告信息。
+            m_webWidget->setProperty("DisplayScrollBars",true); // 显示滚动条
+        }
+
+        if(m_layoutVWeb==nullptr)
+        {
+            m_layoutVWeb = new QVBoxLayout;
+            m_layoutVWeb->setMargin(0);
+            m_layoutVWeb->addWidget(m_webWidget);
+            m_view->setLayout(m_layoutVWeb);
+        }
+
+        m_webWidget->dynamicCall("Navigate(const QString&)",arg1);
+    }
+    else
+    {
+        if(m_layoutVWeb!=nullptr)
+        {
+            delete m_layoutVWeb;
+            m_layoutVWeb = nullptr;
+            m_view->setLayout(nullptr);
+        }
+
+        if(m_webWidget!=nullptr)
+        {
+            delete m_webWidget;
+            m_webWidget = nullptr;
+        }
+    }
+}
+
+void MainWindow::on_lineEditWeb_textChanged(const QString &arg1)
+{
+    CONFIG_JSON->SetWebUrl(arg1);
+
+    if(m_bgGroup->checkedId()==WEB)
+    {
+        SetWeb(true,arg1);
+    }
+}
+
+void MainWindow::on_spinBoxWeb_valueChanged(int arg1)
+{
+    CONFIG_JSON->SetWebTime(arg1);
+
+    if(m_bgGroup->checkedId()==WEB)
+    {
+        if(m_pTimer->isActive())
+        {
+            m_pTimer->stop();
+        }
+        m_pTimer->start(1000*60*CONFIG_JSON->GetWebTime());
     }
 }

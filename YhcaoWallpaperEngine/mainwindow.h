@@ -14,6 +14,7 @@
 #include <QMediaPlayer>
 #include <QVideoWidget>
 #include <QMediaPlaylist>
+#include <ActiveQt/QAxWidget>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -75,6 +76,10 @@ private:
     QVideoWidget *m_videoWidgetVideo;
     QMediaPlaylist *m_mediaPlaylistVideo;
 
+    //Web
+    QVBoxLayout *m_layoutVWeb;
+    QAxWidget *m_webWidget;
+
 
 private slots:
     void on_showMainAction();
@@ -117,6 +122,12 @@ private slots:
 
     void on_spinBoxVideo_valueChanged(int arg1);
 
+    void on_pushButtonWeb_clicked();
+
+    void on_lineEditWeb_textChanged(const QString &arg1);
+
+    void on_spinBoxWeb_valueChanged(int arg1);
+
 private:
     void closeEvent(QCloseEvent *event);
     void resizeEvent ( QResizeEvent * event );
@@ -135,5 +146,6 @@ private:
     void SetLCD(bool checked);
     void SetGif(bool bchecked,int height, int width);
     void SetVideo(bool bDisplay, QString arg1);
+    void SetWeb(bool bDisplay, QString arg1);
 };
 #endif // MAINWINDOW_H

@@ -62,6 +62,11 @@ public:
     void SetVideoPath(QString videoPath);
     int GetVideoVolume();
     void SetVideoVolume(int volume);
+
+    QString GetWebUrl();
+    void SetWebUrl(QString webUrl);
+    int GetWebTime();
+    void SetWebTime(int time);
 private:
     QVariantMap m_cache;
     QString m_fileName;

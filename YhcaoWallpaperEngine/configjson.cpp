@@ -62,7 +62,8 @@ void ConfigJson::IntilJson()
     m_cache.insert("Unsplash",jsonObjUnsplash);
 
     QJsonObject jsonObjWeb;
-    jsonObjWeb.insert("url", "");
+    jsonObjWeb.insert("url", "https://tianqi.qq.com/");//http://tianqi.sogou.com/pc/weather
+    jsonObjWeb.insert("time", 60);
     m_cache.insert("Web",jsonObjWeb);
 
     QJsonObject jsonObjVideo;
@@ -300,5 +301,29 @@ void ConfigJson::SetVideoVolume(int volume)
     QVariantMap val = m_cache["Video"].toMap();
     val["volume"] = volume;
     m_cache["Video"] = val;
+}
+
+QString ConfigJson::GetWebUrl()
+{
+    return m_cache.value("Web").toJsonObject().value("url").toString();
+}
+
+void ConfigJson::SetWebUrl(QString webUrl)
+{
+    QVariantMap val = m_cache["Web"].toMap();
+    val["url"] = webUrl;
+    m_cache["Web"] = val;
+}
+
+int ConfigJson::GetWebTime()
+{
+    return m_cache.value("Web").toJsonObject().value("time").toInt();
+}
+
+void ConfigJson::SetWebTime(int time)
+{
+    QVariantMap val = m_cache["Web"].toMap();
+    val["time"] = time;
+    m_cache["Web"] = val;
 }
 
