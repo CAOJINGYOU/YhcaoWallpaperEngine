@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>YhcaoWallPaperEngine</string>
   </property>
   <property name="windowIcon">
    <iconset resource="icon.qrc">
@@ -36,7 +36,7 @@
          </size>
         </property>
         <property name="text">
-         <string>单图</string>
+         <string>SingleImage</string>
         </property>
        </widget>
       </item>
@@ -50,7 +50,7 @@
       <item>
        <widget class="QPushButton" name="pushButtonSingleImage">
         <property name="text">
-         <string>选择路径</string>
+         <string>SelectPath</string>
         </property>
        </widget>
       </item>
@@ -73,7 +73,7 @@
          </size>
         </property>
         <property name="text">
-         <string>多图</string>
+         <string>MultipleImage</string>
         </property>
        </widget>
       </item>
@@ -87,7 +87,7 @@
       <item>
        <widget class="QPushButton" name="pushButtonMultipleImage">
         <property name="text">
-         <string>选择路径</string>
+         <string>SelectPath</string>
         </property>
        </widget>
       </item>
@@ -146,7 +146,7 @@
          </size>
         </property>
         <property name="text">
-         <string>网页</string>
+         <string>Web</string>
         </property>
        </widget>
       </item>
@@ -156,7 +156,7 @@
       <item>
        <widget class="QPushButton" name="pushButtonWeb">
         <property name="text">
-         <string>选择路径</string>
+         <string>SelectPath</string>
         </property>
        </widget>
       </item>
@@ -237,7 +237,7 @@
          </size>
         </property>
         <property name="text">
-         <string>单色</string>
+         <string>Monochrome</string>
         </property>
        </widget>
       </item>
@@ -260,7 +260,7 @@
       <item>
        <widget class="QPushButton" name="pushButtonMonochrome">
         <property name="text">
-         <string>选择单色</string>
+         <string>SelectColor</string>
         </property>
        </widget>
       </item>
@@ -290,7 +290,7 @@
          </size>
         </property>
         <property name="text">
-         <string>视频</string>
+         <string>Video</string>
         </property>
        </widget>
       </item>
@@ -304,7 +304,7 @@
       <item>
        <widget class="QPushButton" name="pushButtonVideo">
         <property name="text">
-         <string>选择路径</string>
+         <string>SelectPath</string>
         </property>
        </widget>
       </item>
@@ -342,6 +342,26 @@
         </property>
         <property name="text">
          <string>LCD</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBoxAutoStart">
+        <property name="text">
+         <string>AutoStart</string>
         </property>
        </widget>
       </item>

@@ -58,6 +58,9 @@ public:
     bool GetOtherLCD();
     void SetOtherLCD(bool bLcd);
 
+    bool GetOtherAutoStart();
+    void SetOtherAutoStart(bool bAutoStart);
+
     QString GetVideoPath();
     void SetVideoPath(QString videoPath);
     int GetVideoVolume();

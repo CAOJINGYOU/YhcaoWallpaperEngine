@@ -13,6 +13,9 @@
 #include <QDate>
 #include <QColorDialog>
 #include <QPainter>
+#include <QSettings>
+
+#define REG_RUN "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
 
 enum SELECTTYPE
 {
@@ -34,9 +37,9 @@ void MainWindow::InitSysTrayIcon()
     m_SysTrayIcon->setToolTip("Wallpaper");
     connect(m_SysTrayIcon,SIGNAL(activated(QSystemTrayIcon::ActivationReason)),this,SLOT(on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason)));
 
-    m_ShowWindow = new QAction(QIcon("://icon/ShowWindow.png"),"显示程序",this);
+    m_ShowWindow = new QAction(QIcon("://icon/ShowWindow.png"),tr("SHOW"),this);
     connect(m_ShowWindow,SIGNAL(triggered()),SLOT(on_showMainAction()));
-    m_ExitAppAction = new QAction(QIcon(":/icon/ExitApp.png"),"退出程序",this);
+    m_ExitAppAction = new QAction(QIcon(":/icon/ExitApp.png"),tr("EXIT"),this);
     connect(m_ExitAppAction,SIGNAL(triggered()),this,SLOT(on_exitAppAction()));
 
     m_Menu = new QMenu(this);
@@ -121,7 +124,7 @@ void MainWindow::Init()
     default:
         break;
     }
-
+    ui->checkBoxAutoStart->setChecked(CONFIG_JSON->GetOtherAutoStart());
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -995,7 +998,7 @@ void MainWindow::SetWeb(bool bDisplay, QString arg1)
             m_webWidget->setControl(QString::fromUtf8("{8856F961-340A-11D0-A96B-00C04FD705A2}"));
 
             m_webWidget->setProperty("DisplayAlerts",false); //不显示任何警告信息。
-            m_webWidget->setProperty("DisplayScrollBars",true); // 显示滚动条
+            m_webWidget->setProperty("DisplayScrollBars",false); // 不显示滚动条
         }
 
         if(m_layoutVWeb==nullptr)
@@ -1047,4 +1050,31 @@ void MainWindow::on_spinBoxWeb_valueChanged(int arg1)
         }
         m_pTimer->start(1000*60*CONFIG_JSON->GetWebTime());
     }
+}
+
+void MainWindow::on_checkBoxAutoStart_stateChanged(int arg1)
+{
+    bool bChecked(arg1 == Qt::Checked);
+    if(CONFIG_JSON->GetOtherAutoStart() == bChecked)
+    {
+        return;
+    }
+
+    QString application_name = QApplication::applicationName();
+    QSettings *settings = new QSettings(REG_RUN, QSettings::NativeFormat);
+    if(bChecked)
+    {
+       QString application_path = QApplication::applicationFilePath();
+       application_path.replace("/", "\\");
+       QString val = settings->value(application_name).toString();// 如果此键不存在，则返回的是空字符串
+       if(val != application_path)
+       {
+           settings->setValue(application_name, application_path);
+       }
+    }
+    else
+    {
+       settings->remove(application_name);
+    }
+    delete settings;
 }

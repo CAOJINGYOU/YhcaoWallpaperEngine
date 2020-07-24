@@ -128,6 +128,8 @@ private slots:
 
     void on_spinBoxWeb_valueChanged(int arg1);
 
+    void on_checkBoxAutoStart_stateChanged(int arg1);
+
 private:
     void closeEvent(QCloseEvent *event);
     void resizeEvent ( QResizeEvent * event );

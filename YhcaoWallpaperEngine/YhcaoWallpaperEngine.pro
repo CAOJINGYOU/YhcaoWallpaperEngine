@@ -49,3 +49,5 @@ RESOURCES += \
     icon.qrc
 
 RC_ICONS = logo.ico
+
+TRANSLATIONS = vc_zh_cn.ts

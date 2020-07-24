@@ -73,6 +73,7 @@ void ConfigJson::IntilJson()
 
     QJsonObject jsonObOther;
     jsonObOther.insert("lcd", 0);
+    jsonObOther.insert("autostart", 0);
     m_cache.insert("Other",jsonObOther);
 }
 
@@ -276,6 +277,18 @@ void ConfigJson::SetOtherLCD(bool bLcd)
 {
     QVariantMap val = m_cache["Other"].toMap();
     val["lcd"] = (bLcd?1:0);
+    m_cache["Other"] = val;
+}
+
+bool ConfigJson::GetOtherAutoStart()
+{
+    return m_cache.value("Other").toJsonObject().value("autostart").toInt() == 1;
+}
+
+void ConfigJson::SetOtherAutoStart(bool bAutoStart)
+{
+    QVariantMap val = m_cache["Other"].toMap();
+    val["autostart"] = (bAutoStart?1:0);
     m_cache["Other"] = val;
 }
 
