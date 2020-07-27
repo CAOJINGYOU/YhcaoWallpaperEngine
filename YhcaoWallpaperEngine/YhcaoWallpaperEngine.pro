@@ -1,7 +1,12 @@
 QT       += core gui
 QT +=  network
 QT += multimedia  multimediawidgets
+
 QT +=  axcontainer
+
+#QT       += webengine
+#QT       += webenginewidgets
+
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -50,4 +55,4 @@ RESOURCES += \
 
 RC_ICONS = logo.ico
 
-TRANSLATIONS = vc_zh_cn.ts
+TRANSLATIONS = yhcaowallpaperengine_zh

@@ -1,4 +1,4 @@
-#ifndef MAINWINDOW_H
+﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QMainWindow>
@@ -14,7 +14,13 @@
 #include <QMediaPlayer>
 #include <QVideoWidget>
 #include <QMediaPlaylist>
+
+#ifdef __MINGW32__
 #include <ActiveQt/QAxWidget>
+#else
+#include <QWebEngineView>
+#endif
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -77,8 +83,12 @@ private:
     QMediaPlaylist *m_mediaPlaylistVideo;
 
     //Web
-    QVBoxLayout *m_layoutVWeb;
+    QVBoxLayout* m_layoutVWeb;
+#ifdef __MINGW32__
     QAxWidget *m_webWidget;
+#else
+    QWebEngineView *m_webEngineView;
+#endif
 
 
 private slots:

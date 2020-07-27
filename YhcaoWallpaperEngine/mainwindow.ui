@@ -36,7 +36,7 @@
          </size>
         </property>
         <property name="text">
-         <string>SingleImage</string>
+         <string>单图</string>
         </property>
        </widget>
       </item>
@@ -50,7 +50,7 @@
       <item>
        <widget class="QPushButton" name="pushButtonSingleImage">
         <property name="text">
-         <string>SelectPath</string>
+         <string>选择路径</string>
         </property>
        </widget>
       </item>
@@ -73,7 +73,7 @@
          </size>
         </property>
         <property name="text">
-         <string>MultipleImage</string>
+         <string>多图</string>
         </property>
        </widget>
       </item>
@@ -87,7 +87,7 @@
       <item>
        <widget class="QPushButton" name="pushButtonMultipleImage">
         <property name="text">
-         <string>SelectPath</string>
+         <string>选择路径</string>
         </property>
        </widget>
       </item>
@@ -146,7 +146,7 @@
          </size>
         </property>
         <property name="text">
-         <string>Web</string>
+         <string>网页</string>
         </property>
        </widget>
       </item>
@@ -156,7 +156,7 @@
       <item>
        <widget class="QPushButton" name="pushButtonWeb">
         <property name="text">
-         <string>SelectPath</string>
+         <string>选择路径</string>
         </property>
        </widget>
       </item>
@@ -237,7 +237,7 @@
          </size>
         </property>
         <property name="text">
-         <string>Monochrome</string>
+         <string>单色</string>
         </property>
        </widget>
       </item>
@@ -260,7 +260,7 @@
       <item>
        <widget class="QPushButton" name="pushButtonMonochrome">
         <property name="text">
-         <string>SelectColor</string>
+         <string>选择颜色</string>
         </property>
        </widget>
       </item>
@@ -290,7 +290,7 @@
          </size>
         </property>
         <property name="text">
-         <string>Video</string>
+         <string>视频</string>
         </property>
        </widget>
       </item>
@@ -304,7 +304,7 @@
       <item>
        <widget class="QPushButton" name="pushButtonVideo">
         <property name="text">
-         <string>SelectPath</string>
+         <string>选择路径</string>
         </property>
        </widget>
       </item>
@@ -361,7 +361,7 @@
       <item>
        <widget class="QCheckBox" name="checkBoxAutoStart">
         <property name="text">
-         <string>AutoStart</string>
+         <string>自动开机</string>
         </property>
        </widget>
       </item>
