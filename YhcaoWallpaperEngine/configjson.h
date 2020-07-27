@@ -70,6 +70,11 @@ public:
 	void SetWebUrl(QString webUrl);
 	int GetWebTime();
 	void SetWebTime(int time);
+
+    QString GetBingUrl();
+    void SetBingUrl(QString strUrl);
+    int GetBingTime();
+    void SetBingTime(int time);
 private:
 	QVariantMap m_cache;
 	QString m_fileName;

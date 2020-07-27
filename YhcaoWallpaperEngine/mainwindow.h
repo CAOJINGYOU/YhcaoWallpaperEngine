@@ -140,6 +140,8 @@ private slots:
 
     void on_checkBoxAutoStart_stateChanged(int arg1);
 
+    void on_spinBoxBing_valueChanged(int arg1);
+
 private:
     void closeEvent(QCloseEvent *event);
     void resizeEvent ( QResizeEvent * event );

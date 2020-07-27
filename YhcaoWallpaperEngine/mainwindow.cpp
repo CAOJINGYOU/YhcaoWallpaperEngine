@@ -418,18 +418,26 @@ void MainWindow::on_lineEditSingleImage_textChanged(const QString& arg1)
 
 void MainWindow::BingNetExecute()
 {
-	QString fileName = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) + QDir::separator() + "Bing" + QDir::separator();
-	QDate date = QDate::currentDate();
-	fileName.append(date.toString("yyyy-MM-dd")).append(".jpg");
-	QFileInfo fileInfo(fileName);
-	if (fileInfo.exists())
-	{
-		SetViewImage(fileName);
-	}
-	else
-	{
-		m_pBingNet->execute();
-	}
+    if(CONFIG_JSON->GetBingTime()==0)
+    {
+        QString fileName = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) + QDir::separator() + "Bing" + QDir::separator();
+        QDate date = QDate::currentDate();
+        fileName.append(date.toString("yyyy-MM-dd")).append(".jpg");
+        QFileInfo fileInfo(fileName);
+        if (fileInfo.exists())
+        {
+            SetViewImage(fileName);
+        }
+        else
+        {
+            m_pBingNet->execute();
+        }
+    }
+    else
+    {
+        m_pUnsplashNet->execute(CONFIG_JSON->GetBingUrl());
+    }
+
 }
 
 void MainWindow::on_bgGroup_toggled(int id, bool status)
@@ -500,9 +508,18 @@ void MainWindow::on_bgGroup_toggled(int id, bool status)
 		}
 		case BING:
 		{
-			BingNetExecute();
+            if(CONFIG_JSON->GetBingTime()==0)
+            {
+                BingNetExecute();
 
-			m_pTimer->start(1000 * 60 * 60);
+                m_pTimer->start(1000 * 60 * 60);
+            }
+            else
+            {
+                m_pUnsplashNet->execute(CONFIG_JSON->GetBingUrl());
+                m_pTimer->start(1000 * 60 * CONFIG_JSON->GetBingTime());
+            }
+
 			break;
 		}
 		case UNSPLASH:
@@ -638,8 +655,15 @@ void MainWindow::on_handleTimeout()
 		}
 	}
 	else if (m_bgGroup->checkedId() == BING)
-	{
-		BingNetExecute();
+    {
+        if(CONFIG_JSON->GetBingTime()==0)
+        {
+            BingNetExecute();
+        }
+        else
+        {
+            m_pUnsplashNet->execute(CONFIG_JSON->GetBingUrl());
+        }
 	}
 	else if (m_bgGroup->checkedId() == UNSPLASH)
 	{
@@ -1108,4 +1132,26 @@ void MainWindow::on_checkBoxAutoStart_stateChanged(int arg1)
 		settings->remove(application_name);
 	}
 	delete settings;
+}
+
+void MainWindow::on_spinBoxBing_valueChanged(int arg1)
+{
+    int nTime = CONFIG_JSON->GetBingTime();
+    CONFIG_JSON->SetBingTime(arg1);
+
+    if (m_bgGroup->checkedId() == BING)
+    {
+        if(nTime==0&&arg1>0)
+        {
+            m_pUnsplashNet->execute(CONFIG_JSON->GetBingUrl());
+        }
+        if (m_pTimer->isActive())
+        {
+            m_pTimer->stop();
+        }
+        if(arg1>0)
+        {
+            m_pTimer->start(1000 * 60 * CONFIG_JSON->GetBingTime());
+        }
+    }
 }

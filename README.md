@@ -45,3 +45,17 @@
 			"videopath": ""
 		}
 	}
+
+# 其他图片接口 #
+
+[https://img.paulzzh.tech/touhou/random](https://img.paulzzh.tech/touhou/random)
+
+[https://img.paulzzh.tech/](https://img.paulzzh.tech/)
+
+[http://www.dmoe.cc/random.php](http://www.dmoe.cc/random.php)
+
+[http://www.dmoe.cc/](http://www.dmoe.cc/)
+
+[https://uploadbeta.com/api/pictures/random/?key=BingEverydayWallpaperPicture](https://uploadbeta.com/api/pictures/random/?key=BingEverydayWallpaperPicture)
+
+[https://acg.yanwz.cn/wallpaper/api.php](https://acg.yanwz.cn/wallpaper/api.php)
