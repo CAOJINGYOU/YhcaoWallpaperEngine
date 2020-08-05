@@ -1,3 +1,5 @@
+自娱自乐作品
+
 分类
 
 1. 单图
@@ -19,31 +21,54 @@
 默认json配置
 
 	{
-		"selecttype": "SingleImage",
+		"Bing": {
+			"time": 0,
+			"url": "https://uploadbeta.com/api/pictures/random/?key=BingEverydayWallpaperPicture"
+		},
+		"Monochrome": {
+			"alpha": 200,
+			"blue": 127,
+			"green": 170,
+			"lcd": 0,
+			"red": 0,
+			"time": 0
+		},
+		"MultipleImage": {
+			"imagepath": "C:/Users/yhcao/Pictures",
+			"time": 60
+		},
+		"Other": {
+			"autostart": 1,
+			"lcd": 1
+		},
 		"SingleImage": {
 			"imagepath": "Yasuo.jpg"
 		},
-		"MultipleImage": {
-			"imagepath": "",
-			"time": 60
-		},
-		"Bing": {},
 		"Unsplash": {
-			"time": 60,
 			"selectindex": 0,
+			"time": 60,
 			"url": [
 				"https://source.unsplash.com/random",
-				"https://source.unsplash.com/user/yhcao",
-				"https://source.unsplash.com/user/yhcao/likes",
-				"https://source.unsplash.com/weekly?water"
-			],
-		},
-		"Web": {
-			"url": ""
+				"https://picsum.photos",
+				"http://www.dmoe.cc/random.php",
+				"https://img.paulzzh.tech/touhou/random"
+			]
 		},
 		"Video": {
-			"videopath": ""
-		}
+			"videopath": "",
+			"volume": 100
+		},
+		"Web": {
+			"otherurl": [
+				"https://tianqi.qq.com/",
+				"http://tianqi.sogou.com/pc/weather",
+				"https://acg.yanwz.cn/wallpaper/api.php"
+			],
+			"time": 60,
+			"url": "https://tianqi.qq.com/"
+		},
+		"logtype": 2,
+		"selecttype": "SingleImage"
 	}
 
 # 其他图片接口 #
