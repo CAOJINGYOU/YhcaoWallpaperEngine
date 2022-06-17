@@ -81,14 +81,14 @@ void CUnsplashNet::saveImages(QNetworkReply* reply)
 		strFolder = "YhcaoWallpaperEngine";
 	}
 
-	QString fileName = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) + QDir::separator() + strFolder + QDir::separator();
+	QString fileName = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) + "/" + strFolder + "/";
 	QDir dir(fileName);
 	if (!dir.exists())
 	{
 		dir.mkpath(fileName);
 	}
 	QDateTime date = QDateTime::currentDateTime();
-	fileName.append(date.toString("yyyy-MM-dd hhmmss")).append(".jpg");
+	fileName.append(date.toString("yyyy-MM-dd-hhmmss")).append(".jpg");
 	QFile file(fileName);
 	if (!file.open(QIODevice::WriteOnly))
 	{

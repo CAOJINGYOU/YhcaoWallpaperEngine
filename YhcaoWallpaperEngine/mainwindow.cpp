@@ -420,7 +420,7 @@ void MainWindow::BingNetExecute()
 {
 	if (CONFIG_JSON->GetBingTime() == 0)
 	{
-		QString fileName = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) + QDir::separator() + "Bing" + QDir::separator();
+		QString fileName = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) + "/" + "Bing" + "/";
 		QDate date = QDate::currentDate();
 		fileName.append(date.toString("yyyy-MM-dd")).append(".jpg");
 		QFileInfo fileInfo(fileName);
